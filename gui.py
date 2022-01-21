@@ -1,19 +1,33 @@
 import tkinter as tk
 from tkinter import ttk
 #======================
-def radTest():
+def radTest() :
     #print(radChoiceVal.get())
     print("")
 
 def confButtonPress() :
+    total = products[radChoiceVal.get()-1]["Price"]
+    extra = 0
+    
     print('Pedido Finalizado')
     print (products[radChoiceVal.get()-1]["Name"])
     if radChoiceVal.get() in (1, 2, 3):
-        print ()
-    else :
+        print ("Acompanhamentos: ")
+        for i in opcFree :
+            if i[1].get() == 1 :
+                print (i[0])
+                extra += 1
+        if extra > 3 :
+            total += (extra-3)
+    elif radChoiceVal.get() in (4, 5) :
         print (f"Sabor: {shakeFlavors[shakeChosen.get()]}")
         print (f"Cobertura: {toppingFlavors[toppingChosen.get()]}")
         
+    else :
+        print ("NENHUM PRODUTO SELECIONADO")
+        total = 0
+    
+    print (f"Preço final: R${total:.2f}")
         
 
 #======================
@@ -101,12 +115,21 @@ ttk.Radiobutton(
 #=======================================
 #Acai
 opcFree = [
-    "Leite em pó", "Leite condensado", "Granola", "Paçoca",
-    "Mel", "Morango", "Oreo", "Confeti", "Banana"]
+    ["Leite condensado", tk.IntVar()],
+    ["Leite em pó", tk.IntVar()],
+    ["Granola", tk.IntVar()],
+    ["Confeti", tk.IntVar()],
+    ["Morango", tk.IntVar()],
+    ["Paçoca", tk.IntVar()], 
+    ["Banana", tk.IntVar()],
+    ["Oreo", tk.IntVar()],
+    ["Mel", tk.IntVar()]
+]
 
+chosenOpcs = []
 #Create a checkbox for each acai free optional item
 for i in range (len(opcFree)) :
-    box = tk.Checkbutton(acaiFreeOptFrame, text=opcFree[i])
+    box = tk.Checkbutton(acaiFreeOptFrame, text=opcFree[i][0], variable=opcFree[i][1])
     box.grid(column=0, row=i, sticky=tk.W)
     
 #=========================================
