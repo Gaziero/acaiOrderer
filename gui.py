@@ -1,15 +1,22 @@
 import tkinter as tk
 from tkinter import ttk
+import win32print, win32api
 #======================
-def test() :
-    print ("Testei")
 
+orderNumber = 0
+
+#======================
 def confButtonPress() :
-    total = products[radChoiceVal.get()-1]["Price"]
-    extra = 0
+    global orderNumber
     
-    print('Pedido Finalizado')
-    print (products[radChoiceVal.get()-1]["Name"])
+    choice = radChoiceVal.get()-1
+    total = products[choice]["Price"]
+    extra = 0
+    orderNumber += 1
+    
+    print ('Pedido Finalizado'.center(30, "=") + "\n")
+    print (f"Pedido N° {orderNumber}".center(30, "=") + "\n")
+    print (products[choice]["Name"].center(30) + "\n")
     
     if radChoiceVal.get() in (1, 2, 3): #Acai
         print ("Acompanhamentos: ") #Reads and prints out all the chosen optional items
@@ -44,23 +51,29 @@ def confButtonPress() :
         total = 0
     
     if total > 0 :
+        print ("\n" +"-"*30)
+        print (f"Pedido N° {orderNumber}".center(30, "="))
+        print (products[choice]["Name"].center(30))
         print (f"Preço final: R${total:.2f}")
-        
+        print ("\n" +"-"*30)
 
-#======================
-orderNum = 0
-window = tk.Tk()
+#=========================================================================
+
+window = tk.Tk() #Main Window
 window.title("Pedidos")
 radChoiceVal = tk.IntVar() #Stores the code referent to the chosen product
+
+#=========================================================================
 
 products = [
     {"Name" : "Açaí 330ml", "Price" : 12.00},
     {"Name" : "Açaí 440ml", "Price" : 15.00},
     {"Name" : "Açaí 550ml", "Price" : 18.00},
     {"Name" : "Milkshake 440ml", "Price" : 9.00},
-    {"Name" : "Milkshake 550ml", "Price" : 10.00}
-]
-#======================
+    {"Name" : "Milkshake 550ml", "Price" : 10.00}]
+
+#==========================================================================
+
 #Frames division
 acaiFrame = ttk.LabelFrame(window, text="Açaí")
 acaiFrame.grid(column=0, row=0, sticky=tk.W)
@@ -72,44 +85,34 @@ choicesFrame = ttk.LabelFrame(window)
 choicesFrame.grid(column=0, row=2, sticky=tk.W)
 
 acaiFreeOptFrame = ttk.LabelFrame(choicesFrame, text="Opcionais Gratuitos (Até 3)")
-#acaiFreeOptFrame.grid(column=0, row=0, rowspan=2, sticky=tk.W)
 
 acaiEspOptFrame = ttk.LabelFrame(choicesFrame, text="Opcionais Extras (R$2,00)")
-#acaiEspOptFrame.grid(column=1, row=0, sticky=tk.N)
 
 acaiPremiumOptFrame = ttk.LabelFrame(choicesFrame, text="Opcs Premium (R$4,00)")
-#acaiPremiumOptFrame.grid(column=1, row=1, sticky=tk.N)
 
 shakeFlavorsFrame = ttk.LabelFrame(choicesFrame, text="Sabor do milkshake")
-#shakeFlavorsFrame.grid(column=1, row=0, sticky=tk.N)
 
 shakeToppingFrame = ttk.LabelFrame(choicesFrame, text="Sabor da cobertura")
-#shakeToppingFrame.grid(column=1, row=1, sticky=tk.N)
 
 shakeBoozeFrame = ttk.LabelFrame(choicesFrame, text="Bebida Alcoólica")
-#shakeBoozeFrame.grid(column=1, row=2, sticky="NW")
 
-#=========================
-def menuChanger() :
+def menuChanger() : #Toggles the display between acai/milkshake related options
     choice = radChoiceVal.get()
     if choice in (4, 5) :
         shakeFlavorsFrame.grid(column=0, row=0, sticky="NW")        
         shakeToppingFrame.grid(column=1, row=0, sticky="NW")
         shakeBoozeFrame.grid(column=0, row=1, columnspan=2, sticky='NW')
-        acaiPremiumOptFrame.grid_forget()
-        acaiFreeOptFrame.grid_forget()
-        acaiEspOptFrame.grid_forget()
+        acaiPremiumOptFrame.grid_remove()
+        acaiFreeOptFrame.grid_remove()
+        acaiEspOptFrame.grid_remove()
     else :
         acaiPremiumOptFrame.grid(column=1, row=1, sticky="NW")
         acaiFreeOptFrame.grid(column=0, row=0, rowspan=2, sticky="NW")
         acaiEspOptFrame.grid(column=1, row=0, sticky="NW")
-        shakeFlavorsFrame.grid_forget()
-        shakeToppingFrame.grid_forget()
-        shakeBoozeFrame.grid_forget()
-#=========================
+        shakeFlavorsFrame.grid_remove()
+        shakeToppingFrame.grid_remove()
+        shakeBoozeFrame.grid_remove()
 
-bottomFrame = ttk.LabelFrame(window, text="Preço R$")
-bottomFrame.grid(column=0, row=3, sticky=tk.W)
 #======================
 #Acai Header selector
 #Acai 330
@@ -160,7 +163,6 @@ ttk.Radiobutton(
 
 #=======================================
 #Acai
-chosenOpcs = []
 
 optFree = [
     ["Leite condensado", tk.IntVar()],
@@ -189,24 +191,34 @@ optPremium = [
 
 #Create a checkbox for each acai free optional item
 for i in range (len(optFree)) :
-    box = tk.Checkbutton(acaiFreeOptFrame, text=optFree[i][0], variable=optFree[i][1])
+    box = tk.Checkbutton(
+        acaiFreeOptFrame,
+        text=optFree[i][0],
+        variable=optFree[i][1])
     box.grid(column=0, row=i, sticky=tk.W)
 
 #Create a checkbox for each acai special optional item
 for i in range (len(optEsp)) :
-    box = tk.Checkbutton(acaiEspOptFrame, text=optEsp[i][0], variable=optEsp[i][1])
+    box = tk.Checkbutton(
+        acaiEspOptFrame,
+        text=optEsp[i][0],
+        variable=optEsp[i][1])
     box.grid(column=0, row=i, sticky=tk.W)
     
 #Create a checkbox for each acai premium optional item
 for i in range (len(optPremium)) :
-    box = tk.Checkbutton(acaiPremiumOptFrame, text=optPremium[i][0], variable=optPremium[i][1])
+    box = tk.Checkbutton(
+        acaiPremiumOptFrame,
+        text=optPremium[i][0],
+        variable=optPremium[i][1])
     box.grid(column=0, row=i, sticky=tk.W)
 
 #=========================================
 #Milkshakes
 shakeFlavors = [
-    "Creme", "Morango", "Chocomenta",
-    "Chocolate", "Chiclete", "Flocos"]
+    "Creme", "Morango",
+    "Chiclete", "Flocos",
+    "Chocolate","Chocomenta"]
 
 shakeChosen = tk.IntVar() #Shake flavor number
 
@@ -220,7 +232,9 @@ for i in range (len(shakeFlavors)) :
     radFlavor.grid(column=0, row=i, sticky=tk.W)
 
 
-toppingFlavors = ["Nenhuma", "Caramelo", "Chocolate", "Morango"]
+toppingFlavors = [
+    "Nenhuma", "Caramelo",
+    "Chocolate", "Morango"]
 
 toppingChosen = tk.IntVar() #Topping flavor index
 
@@ -233,8 +247,11 @@ for i in range (len(toppingFlavors)) :
         value = i)
     radTopp.grid(column=0, row=i, sticky=tk.W)
     
+
 #Alcoholic milkshake
-boozeOpts = ["Nenhum", "Gin", "Vodka", "Whisky"]
+boozeOpts = [
+    "Nenhum", "Gin",
+    "Vodka", "Whisky"]
 
 boozeChosen = tk.IntVar() #Chosen booze index
 
@@ -249,11 +266,12 @@ for i in range (len(boozeOpts)) :
 
 #=======================================
 #Bottom display:
-ttk.Label(bottomFrame, text="00,00").grid(column=0, row=0)
 
-confirm = 0
+confButton = ttk.Button(
+    window,
+    text="Confirmar pedido",
+    command=confButtonPress)
+confButton.grid(column=0, row=3)
 
-confButton = ttk.Button(bottomFrame, text="Finalizar", command=confButtonPress)
-confButton.grid(column=1, row=0)
 #======================
 window.mainloop() #Runs the GUI
