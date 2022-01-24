@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, font
 import win32print, win32api
 #======================
 
@@ -8,60 +8,76 @@ orderNumber = 0
 #======================
 def confButtonPress() :
     global orderNumber
+    open("toPrintTop.txt", "w")
+    open("toPrintBot.txt", "w")
+    
+    f1 = open("toPrintTop.txt", "a") #Order part that goes to the kitchen
+    f2 = open("toPrintBot.txt", "a") #Order part that goes with the client
     
     choice = radChoiceVal.get()-1
     total = products[choice]["Price"]
     extra = 0
     orderNumber += 1
     
-    print ('Pedido Finalizado'.center(30, "=") + "\n")
-    print (f"Pedido N° {orderNumber}".center(30, "=") + "\n")
-    print (products[choice]["Name"].center(30) + "\n")
+    f1.write('Pedido Finalizado'.center(27, "=") + "\n")
+    f1.write(f"Pedido N° {orderNumber}".center(27, "=") + "\n\n")
+    f1.write(products[choice]["Name"].center(27) + "\n\n")
     
     if radChoiceVal.get() in (1, 2, 3): #Acai
-        print ("Acompanhamentos: ") #Reads and prints out all the chosen optional items
+        if lid.get() is True :
+            f1.write("Com tampa\n\n")
+            
+        f1.write("Acompanhamentos: " + "\n") #Reads and prints out all the chosen optional items
         
         for i in optFree : #Analizes each item, checking if it's marked 
-            if i[1].get() == 1 :
-                print (i[0])
+            if i[1].get() is True or i[1] is True:
+                f1.write(i[0] + "\n")
                 extra += 1
         
         if extra > 3 : #If more than 3 items are added, adds R$1,00, for each extra item, to the total
             total += (extra-3)
         
         for i in optEsp : #If an item from the special list is chosen, adds R$2,00 
-            if i[1].get() == 1 :
-                print (i[0])
+            if i[1].get() is True or i[1] is True:
+                f1.write(i[0] + "\n")
                 total += 2
 
-        for i in optPremium : #If an item from the premium list is chosen, adds R$4,00
-            if i[1].get() == 1 :
-                print (i[0])
+        for i in optPremium or i[1] is True: #If an item from the premium list is chosen, adds R$4,00
+            if i[1].get() is True :
+                f1.write(i[0] + "\n")
                 total += 4
 
     elif radChoiceVal.get() in (4, 5) : #Milkshake
-        print (f"Sabor: {shakeFlavors[shakeChosen.get()]}")
-        print (f"Cobertura: {toppingFlavors[toppingChosen.get()]}")
+        f1.write(f"Sabor: {shakeFlavors[shakeChosen.get()]}" + "\n")
+        f1.write(f"Cobertura: {toppingFlavors[toppingChosen.get()]}" + "\n")
         if boozeOpts[boozeChosen.get()] != "Nenhum" :
-            print (f"Álcool: {boozeOpts[boozeChosen.get()]}")
+            f1.write(f"Álcool: {boozeOpts[boozeChosen.get()]}" + "\n")
             total += 5
         
     else :
-        print ("NENHUM PRODUTO SELECIONADO") #None selected
+        f1.write("NENHUM PRODUTO SELECIONADO") #None selected
         total = 0
     
     if total > 0 :
-        print ("\n" +"-"*30)
-        print (f"Pedido N° {orderNumber}".center(30, "="))
-        print (products[choice]["Name"].center(30))
-        print (f"Preço final: R${total:.2f}")
-        print ("\n" +"-"*30)
+        f2.write("\n" + "-"*27 + "\n")
+        f2.write(f"Pedido N° {orderNumber}".center(27, "=") + "\n")
+        f2.write(products[choice]["Name"].center(27) + "\n")
+        f2.write(f"Preço final: R${total:.2f}")
+        f2.write("\n" +"-"*27)
+    f1.close()
+    f2.close()
+    win32api.ShellExecute(0, "print", "toPrintTop.txt", f'/d:"{win32print.GetDefaultPrinter()}"', ".", 0)
+    win32api.ShellExecute(0, "print", "toPrintBot.txt", f'/d:"{win32print.GetDefaultPrinter()}"', ".", 0)
 
 #=========================================================================
 
 window = tk.Tk() #Main Window
 window.title("Pedidos")
 radChoiceVal = tk.IntVar() #Stores the code referent to the chosen product
+
+#========================================================================
+defaultFont = font.nametofont("TkDefaultFont")
+defaultFont.configure(size=11)
 
 #=========================================================================
 
@@ -105,10 +121,12 @@ def menuChanger() : #Toggles the display between acai/milkshake related options
         acaiPremiumOptFrame.grid_remove()
         acaiFreeOptFrame.grid_remove()
         acaiEspOptFrame.grid_remove()
+        acaiLid.grid_remove()
     else :
         acaiPremiumOptFrame.grid(column=1, row=1, sticky="NW")
         acaiFreeOptFrame.grid(column=0, row=0, rowspan=2, sticky="NW")
         acaiEspOptFrame.grid(column=1, row=0, sticky="NW")
+        acaiLid.grid(column=0, row=3, sticky="NW")
         shakeFlavorsFrame.grid_remove()
         shakeToppingFrame.grid_remove()
         shakeBoozeFrame.grid_remove()
@@ -165,28 +183,28 @@ ttk.Radiobutton(
 #Acai
 
 optFree = [
-    ["Leite condensado", tk.IntVar()],
-    ["Leite em pó", tk.IntVar()],
-    ["Granola", tk.IntVar()],
-    ["Confeti", tk.IntVar()],
-    ["Morango", tk.IntVar()],
-    ["Paçoca", tk.IntVar()], 
-    ["Banana", tk.IntVar()],
-    ["Oreo", tk.IntVar()],
-    ["Mel", tk.IntVar()]
+    ["Leite condensado", tk.BooleanVar()],
+    ["Leite em pó", tk.BooleanVar()],
+    ["Granola", tk.BooleanVar()],
+    ["Confeti", tk.BooleanVar()],
+    ["Morango", tk.BooleanVar()],
+    ["Paçoca", tk.BooleanVar()], 
+    ["Banana", tk.BooleanVar()],
+    ["Oreo", tk.BooleanVar()],
+    ["Mel", tk.BooleanVar()]
 ]
 
 optEsp = [
-    ["Stikadinho", tk.IntVar()],
-    ["Bis preto", tk.IntVar()],
-    ["Abacaxi", tk.IntVar()],
-    ["Manga", tk.IntVar()],
-    ["Kiwi", tk.IntVar()]
+    ["Stikadinho", tk.BooleanVar()],
+    ["Bis preto", tk.BooleanVar()],
+    ["Abacaxi", tk.BooleanVar()],
+    ["Manga", tk.BooleanVar()],
+    ["Kiwi", tk.BooleanVar()]
 ]
 
 optPremium = [
-    ["Nutella", tk.IntVar()],
-    ["KitKat", tk.IntVar()]
+    ["Nutella", tk.BooleanVar()],
+    ["KitKat", tk.BooleanVar()]
 ]
 
 #Create a checkbox for each acai free optional item
@@ -194,7 +212,9 @@ for i in range (len(optFree)) :
     box = tk.Checkbutton(
         acaiFreeOptFrame,
         text=optFree[i][0],
-        variable=optFree[i][1])
+        variable=optFree[i][1],
+        onvalue=True,
+        offvalue=False)
     box.grid(column=0, row=i, sticky=tk.W)
 
 #Create a checkbox for each acai special optional item
@@ -202,7 +222,9 @@ for i in range (len(optEsp)) :
     box = tk.Checkbutton(
         acaiEspOptFrame,
         text=optEsp[i][0],
-        variable=optEsp[i][1])
+        variable=optEsp[i][1],
+        onvalue=True,
+        offvalue=False)
     box.grid(column=0, row=i, sticky=tk.W)
     
 #Create a checkbox for each acai premium optional item
@@ -210,9 +232,18 @@ for i in range (len(optPremium)) :
     box = tk.Checkbutton(
         acaiPremiumOptFrame,
         text=optPremium[i][0],
-        variable=optPremium[i][1])
+        variable=optPremium[i][1],
+        onvalue=True,
+        offvalue=False)
     box.grid(column=0, row=i, sticky=tk.W)
 
+lid = tk.BooleanVar()
+acaiLid = tk.Checkbutton(
+    window,
+    text="Tampa",
+    variable=lid,
+    onvalue=True,
+    offvalue=False)
 #=========================================
 #Milkshakes
 shakeFlavors = [
@@ -271,7 +302,6 @@ confButton = ttk.Button(
     window,
     text="Confirmar pedido",
     command=confButtonPress)
-confButton.grid(column=0, row=3)
-
+confButton.grid(column=0, row=3, sticky="NE")
 #======================
 window.mainloop() #Runs the GUI
